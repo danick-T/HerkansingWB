@@ -4,6 +4,7 @@ import {
   listHouseholds,
   getHousehold,
   createHousehold,
+  joinHousehold,
   updateHousehold,
   deleteHousehold
 } from '../controllers/householdController.js';
@@ -20,6 +21,10 @@ router.get('/', listHouseholds);
 
 // Een groep aanmaken: je kan onmogelijk al lid zijn van iets dat nog niet bestaat.
 router.post('/', createHousehold);
+
+// Aansluiten met een uitnodigingscode. Moet BOVEN /:householdId staan,
+// anders vangt die route '/join' op en probeert Express er een id van te maken.
+router.post('/join', joinHousehold);
 
 // Vanaf hier bestaat :householdId wel, dus geven we de guard per route mee.
 router.get('/:householdId', requireMembership, getHousehold);

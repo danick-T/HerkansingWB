@@ -42,6 +42,8 @@ const app = createApp(App)
   .use(router)
   .use(VueAxios, axios);
 
+app.provide('axios', app.config.globalProperties.axios);
+
 router.isReady().then(() => {
   app.mount('#app');
 });

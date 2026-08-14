@@ -1,19 +1,15 @@
 import { pool } from '../db.js';
 
-/* ------------------------------------------------------------------
-   Hulpfuncties
------------------------------------------------------------------- */
-
 /**
- * Zet een databaserij om naar de JSON-vorm die de app verwacht.
- * De database gebruikt snake_case, de app camelCase. Die vertaling
- * gebeurt op één plek zodat ze overal identiek is.
+ * snake_case → camelCase
+ * Platte rij → geneste objecten
+ * De bon selectief meesturen
  */
 function mapRow(row, { includeReceipt = false } = {}) {
   const result = {
     id: row.id,
     type: row.type,
-    amount: row.amount,              // pg geeft NUMERIC terug als string: exact, geen afrondingsfouten
+    amount: row.amount,              
     description: row.description,
     date: row.date,
     hasReceipt: row.has_receipt,
@@ -87,6 +83,7 @@ function validateBody(body) {
 
 export async function listTransactions(req, res, next) {
   const { householdId } = req.membership;
+  // filters voorbeeld: GET /transactions?type=expense&from=2026-01-01 
   const { from, to, type, categoryId, userId } = req.query;
 
   const page = Math.max(1, Number(req.query.page) || 1);
@@ -126,8 +123,6 @@ export async function listTransactions(req, res, next) {
     ]);
 
     res.json({
-      // De lijst geeft bewust geen receipt_image mee: anders duw je bij elke
-      // oproep megabytes aan base64 over de lijn. hasReceipt volstaat hier.
       data: listResult.rows.map((row) => mapRow(row)),
       page,
       limit,

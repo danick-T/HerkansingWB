@@ -23,6 +23,8 @@ router.get('/', requireAdmin, listUsers);
 router.get('/:userId', getUser);
 router.put('/:userId', updateUser);
 
-router.delete('/:userId', requireAdmin, deleteUser);
+// Geen requireAdmin: je mag je eigen account opzeggen. De controller
+// controleert of het om jezelf gaat, of om een beheerder.
+router.delete('/:userId', deleteUser);
 
 export default router;

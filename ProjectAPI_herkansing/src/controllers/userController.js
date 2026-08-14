@@ -122,7 +122,8 @@ export async function updateUser(req, res, next) {
   }
 }
 
-/* DELETE /api/users/:userId   (alleen admin) */
+/* DELETE /api/users/:userId */
+
 export async function deleteUser(req, res, next) {
   const id = Number(req.params.userId);
 
@@ -130,16 +131,63 @@ export async function deleteUser(req, res, next) {
     return res.status(400).json({ message: 'Ongeldig id' });
   }
 
+  if (!magBij(req, id)) {
+    return res.status(403).json({ message: 'Je mag dit account niet verwijderen' });
+  }
+
+  // Alles in één transactie: moeten samen slagen of samen mislukken.
+  const client = await pool.connect();
+
   try {
-    const { rowCount } = await pool.query(`DELETE FROM users WHERE id = $1`, [id]);
+    await client.query('BEGIN');
+
+    // Groepen waarvan deze gebruiker de enige eigenaar is terwijl er nog
+    // andere leden zijn. 
+    const blokkerend = await client.query(
+      `SELECT h.name
+         FROM memberships m
+         JOIN households h ON h.id = m.household_id
+        WHERE m.user_id = $1
+          AND m.role = 'owner'
+          AND (SELECT count(*) FROM memberships o
+                WHERE o.household_id = m.household_id AND o.role = 'owner') = 1
+          AND (SELECT count(*) FROM memberships a
+                WHERE a.household_id = m.household_id) > 1`,
+      [id]
+    );
+
+    if (blokkerend.rows.length > 0) {
+      await client.query('ROLLBACK');
+      return res.status(409).json({
+        message: 'Maak eerst iemand anders eigenaar van deze groepen',
+        households: blokkerend.rows.map((row) => row.name)
+      });
+    }
+
+    // Groepen waarvan deze gebruiker het enige lid is, verdwijnen mee.
+    await client.query(
+      `DELETE FROM households h
+        WHERE EXISTS (SELECT 1 FROM memberships m
+                       WHERE m.household_id = h.id AND m.user_id = $1)
+          AND (SELECT count(*) FROM memberships a
+                WHERE a.household_id = h.id) = 1`,
+      [id]
+    );
+
+    const { rowCount } = await client.query(`DELETE FROM users WHERE id = $1`, [id]);
 
     if (rowCount === 0) {
+      await client.query('ROLLBACK');
       return res.status(404).json({ message: 'Gebruiker niet gevonden' });
     }
 
+    await client.query('COMMIT');
 
     res.status(204).send();
   } catch (err) {
+    await client.query('ROLLBACK');
     next(err);
+  } finally {
+    client.release();
   }
 }

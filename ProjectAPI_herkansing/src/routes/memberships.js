@@ -19,9 +19,11 @@ router.use(requireAuth, requireMembership);
 router.get('/', listMemberships);
 router.get('/:membershipId', getMembership);
 
-// Leden toevoegen, van rol veranderen of verwijderen: enkel de eigenaar.
-router.post('/',                requireOwner, createMembership);
-router.put('/:membershipId',    requireOwner, updateMembership);
-router.delete('/:membershipId', requireOwner, deleteMembership);
+// Leden toevoegen of van rol veranderen: enkel de eigenaar.
+router.post('/',             requireOwner, createMembership);
+router.put('/:membershipId', requireOwner, updateMembership);
+
+// "de groep verlaten",
+router.delete('/:membershipId', deleteMembership);
 
 export default router;

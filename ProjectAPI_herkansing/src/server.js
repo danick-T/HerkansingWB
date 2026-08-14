@@ -13,6 +13,17 @@ app.get('/api/health', async (req, res) => {
   res.json({ status: 'ok', time: rows[0].now });
 });
 
+app.use((req, res) => {
+  res.status(404).json({ message: 'Endpoint bestaat niet' });
+});
+ 
+// Centrale foutafhandeling. Elke next(err) in een controller komt hier terecht,
+// zodat je nergens anders een 500 hoeft te bouwen.
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ message: 'Er ging iets mis op de server' });
+});
+
 
 const port = process.env.PORT || 3000;
 app.listen(port, '0.0.0.0', () => console.log(`API draait op poort ${port}`));

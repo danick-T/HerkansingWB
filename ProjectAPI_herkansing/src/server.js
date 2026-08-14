@@ -3,6 +3,7 @@ import cors from 'cors';
 import 'dotenv/config';
 
 import { pool } from './db.js';
+import authRoutes from './routes/auth.js';
 import categoryRoutes from './routes/categories.js';
 import householdRoutes from './routes/household.js';
 import membershipRoutes from './routes/memberships.js';
@@ -26,6 +27,7 @@ app.use('/api/households/:householdId/transactions', transactionRoutes);
 app.use('/api/households/:householdId/memberships', membershipRoutes);
 
 // Losstaande resources.
+app.use('/api/auth', authRoutes);
 app.use('/api/households', householdRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/users', userRoutes);

@@ -25,7 +25,7 @@
             <ion-button expand="block" type="submit" :disabled="isLoading">login</ion-button>
             <ion-alert
                 :is-open="errorMessage !== ''"
-                header="Something went wrong"
+                :header="alertHeader"
                 :message="errorMessage"
                 :buttons="['OK']"
                 @didDismiss="errorMessage = ''"
@@ -45,6 +45,7 @@
              IonItem, IonLabel, IonInput, IonButton, IonAlert } from '@ionic/vue';
     import { useRouter } from 'vue-router';
     import axios from 'axios';
+    import { login } from '@/auth';
 
     const BASE_URL = import.meta.env.VITE_API_URL;
     const email = ref('');
@@ -91,13 +92,11 @@
                 email: email.value,
                 password: password.value
             });
-            console.log(response.data);
-            // Handle successful login, e.g., store token, redirect, etc.
-            router.replace('/tabs/ProfilePage');
+            login(response.data.token, response.data.user);
+            router.replace('/tabs/profile');
         } catch (error) {
             console.error(error);
-            // Handle login error, e.g., show error message
-            errorMessage.value = 'Invalid email or password';
+            showError('Login failed', 'Invalid email or password.');
         } finally {
             isLoading.value = false;
         }

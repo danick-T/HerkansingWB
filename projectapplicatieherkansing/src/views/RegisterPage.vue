@@ -14,7 +14,7 @@
 
       <form @submit.prevent="registerUser">
         <ion-item>
-          <ion-input label="Username*" v-model="username" required placeholder="Enter username"></ion-input>
+          <ion-input label="Name*" v-model="name" required placeholder="Enter your name"></ion-input>
         </ion-item>
 
         <ion-item>
@@ -50,7 +50,7 @@
     import { useRouter } from 'vue-router';
     import { login } from '@/auth';
 
-    const username = ref('');
+    const name = ref('');
     const email = ref('');
     const password = ref('');
     const BASE_URL = import.meta.env.VITE_API_URL;
@@ -67,7 +67,7 @@
 
     const validateForm = () => {
         const missing = [];
-        if (!username.value.trim()) missing.push('Username');
+        if (!name.value.trim()) missing.push('Name');
         if (!email.value.trim()) missing.push('Email');
         if (!password.value.trim()) missing.push('Password');
 
@@ -100,16 +100,20 @@
         isLoading.value = true;
         try {
             const response = await axios.post(`${BASE_URL}/api/auth/register`, {
-                username: username.value,
+                name: name.value,
                 email: email.value,
                 password: password.value
             });
             login(response.data.token, response.data.user);
-            router.replace('/tabs/ProfilePage');
+            router.replace('/tabs/profile');
         } catch (error) {
             console.error(error);
-            // Handle registration error, e.g., show error message
-            showError('Registration failed', 'Registration failed. Please try again.');
+            // De API stuurt zelf een bruikbare melding mee, bv. bij een e-mailadres
+            // dat al bestaat. Die tonen we, anders val je terug op een algemene tekst.
+            showError(
+                'Registration failed',
+                error.response?.data?.message ?? 'Registration failed. Please try again.'
+            );
         } finally {
             isLoading.value = false;
         }

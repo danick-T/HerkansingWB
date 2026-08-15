@@ -28,12 +28,18 @@
 
       <ion-list :inset="true">
         <ion-item>
-          <ion-input type="password" label="password" > </ion-input>
+          <ion-input type="password" label="new password" v-model="password"
+                     placeholder="At least 8 characters"></ion-input>
+        </ion-item>
+        <ion-item v-if="passwordMessage">
+          <ion-label :color="passwordOk ? 'success' : 'danger'">{{ passwordMessage }}</ion-label>
         </ion-item>
         <ion-item>
-          <ion-button @click="changePassword(password)">Change Password</ion-button>
+          <ion-button :disabled="isSavingPassword" @click="changePassword">Change Password</ion-button>
         </ion-item>
       </ion-list>
+
+      <ion-Title size="large">Your Groups</ion-title>
 
       <ion-list :inset="true">
         <ion-item v-if="isLoadingGroups">
@@ -82,8 +88,7 @@ const groups = ref([]);
 const isLoadingGroups = ref(true);
 const groupsError = ref('');
 
-/* De groepen waar je lid van bent: GET /api/households.
-   De Authorization-header staat al globaal op axios via auth.js. */
+
 onMounted(async () => {
   try {
     const response = await axios.get(`${BASE_URL}/api/households`);
@@ -95,14 +100,45 @@ onMounted(async () => {
     isLoadingGroups.value = false;
   }
 });
-const changePassword = () => {
-  logout();
-  router.replace('/login');
+
+const password = ref('');
+const passwordMessage = ref('');
+const passwordOk = ref(false);
+const isSavingPassword = ref(false);
+
+/* Er is geen apart wachtwoord-endpoint: het loopt via PUT /api/users/:userId.
+   Die vraagt name en email verplicht mee, ook al wijzigen die niet - laat je
+   ze weg, dan krijg je een 400 met 'Naam is verplicht'. */
+const changePassword = async () => {
+  if (!user.value) return;
+
+  if (password.value.length < 8) {
+    passwordOk.value = false;
+    passwordMessage.value = 'Your password must be at least 8 characters long.';
+    return;
+  }
+
+  isSavingPassword.value = true;
+  try {
+    await axios.put(`${BASE_URL}/api/users/${user.value.id}`, {
+      name: user.value.name,
+      email: user.value.email,
+      password: password.value
+    });
+    password.value = '';
+    passwordOk.value = true;
+    passwordMessage.value = 'Your password has been changed.';
+  } catch (error) {
+    console.error(error);
+    passwordOk.value = false;
+    passwordMessage.value = error.response?.data?.message ?? 'Could not change your password.';
+  } finally {
+    isSavingPassword.value = false;
+  }
 };
 
-const goToGroupInfo = () => {
-  logout();
-  router.replace('/tabs/GroupInfo');
+const goToGroupInfo = (householdId) => {
+  router.push(`/tabs/GroupInfo/${householdId}`);
 };
 
 const logoutUser = () => {

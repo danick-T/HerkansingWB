@@ -32,7 +32,7 @@ const routes = [
         component: () => import('@/views/MyGroupsPage.vue')
       },
       {
-        path: 'GroupInfo',
+        path: 'GroupInfo/:householdId',
         component: () => import('@/views/GroupInfoPage.vue')
       }
     ]

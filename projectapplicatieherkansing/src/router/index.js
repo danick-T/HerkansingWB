@@ -54,7 +54,7 @@ router.beforeEach((to) => {
   }
 
   if ((to.path === '/login' || to.path === '/register') && ingelogd) {
-    return '/tabs/tab1';
+    return '/tabs/profile';
   }
 });
 

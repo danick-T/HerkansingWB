@@ -21,11 +21,11 @@
             <ion-input label="Password*" type="password" v-model="password" required placeholder="Enter Password"></ion-input>
         </ion-item>
 
-        <div class="ion-padding">
+        <div>
             <ion-button expand="block" type="submit" :disabled="isLoading">login</ion-button>
             <ion-alert
                 :is-open="errorMessage !== ''"
-                :header="alertHeader"
+                header="Something went wrong"
                 :message="errorMessage"
                 :buttons="['OK']"
                 @didDismiss="errorMessage = ''"
@@ -40,11 +40,11 @@
 </template>
 
 <script setup>
-    import { ref, inject } from 'vue';
+    import { ref } from 'vue';
     import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,
              IonItem, IonLabel, IonInput, IonButton, IonAlert } from '@ionic/vue';
     import { useRouter } from 'vue-router';
-    import { login } from '@/auth';
+    import axios from 'axios';
 
     const BASE_URL = import.meta.env.VITE_API_URL;
     const email = ref('');
@@ -53,7 +53,6 @@
     const alertHeader = ref('');
     const isLoading = ref(false);
     const router = useRouter();
-    const axios = inject('axios');
 
     const showError = (header, message) => {
         alertHeader.value = header;
@@ -92,12 +91,13 @@
                 email: email.value,
                 password: password.value
             });
-            login(response.data.token, response.data.user);
-            router.replace('/tabs/tab1');
+            console.log(response.data);
+            // Handle successful login, e.g., store token, redirect, etc.
+            router.replace('/tabs/ProfilePage');
         } catch (error) {
             console.error(error);
             // Handle login error, e.g., show error message
-            showError('Login failed', 'Invalid email or password.');
+            errorMessage.value = 'Invalid email or password';
         } finally {
             isLoading.value = false;
         }

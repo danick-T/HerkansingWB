@@ -105,7 +105,7 @@
                 password: password.value
             });
             login(response.data.token, response.data.user);
-            router.replace('/tabs/tab1');
+            router.replace('/tabs/ProfilePage');
         } catch (error) {
             console.error(error);
             // Handle registration error, e.g., show error message

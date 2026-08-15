@@ -3,7 +3,7 @@
     <ion-tabs>
       <ion-router-outlet></ion-router-outlet>
       <ion-tab-bar slot="bottom">
-        <ion-tab-button tab="tab3" href="/tabs/profile">
+        <ion-tab-button tab="profile" href="/tabs/profile">
           <ion-icon :icon="personOutline"></ion-icon>
           <ion-label>profile</ion-label>
         </ion-tab-button>

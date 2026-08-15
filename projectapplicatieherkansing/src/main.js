@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router';
+import { token, logout } from './auth';
 import axios from 'axios';
 import VueAxios from 'vue-axios';
 
@@ -43,6 +44,20 @@ const app = createApp(App)
   .use(VueAxios, axios);
 
 app.provide('axios', app.config.globalProperties.axios);
+
+/* Token verlopen (12u) of ongeldig -> uitloggen en terug naar login.
+   Alleen als we dachten ingelogd te zijn: een 401 op de login-call zelf
+   betekent gewoon 'verkeerd wachtwoord'. */
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 && token.value !== null) {
+      logout();
+      router.replace('/login');
+    }
+    return Promise.reject(error);
+  }
+);
 
 router.isReady().then(() => {
   app.mount('#app');

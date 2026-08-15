@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from '@ionic/vue-router';
 import TabsPage from '../views/TabsPage.vue'
+import { token } from '@/auth';
 
 const routes = [
   {
@@ -20,19 +21,19 @@ const routes = [
     children: [
       {
         path: '',
-        redirect: '/tabs/tab1'
+        redirect: '/tabs/profile'
       },
       {
-        path: 'tab1',
-        component: () => import('@/views/Tab1Page.vue')
+        path: 'profile',
+        component: () => import('@/views/ProfilePage.vue')
       },
       {
-        path: 'tab2',
-        component: () => import('@/views/Tab2Page.vue')
+        path: 'MyGroup',
+        component: () => import('@/views/MyGroupsPage.vue')
       },
       {
-        path: 'tab3',
-        component: () => import('@/views/Tab3Page.vue')
+        path: 'GroupInfo',
+        component: () => import('@/views/GroupInfoPage.vue')
       }
     ]
   }
@@ -42,5 +43,19 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes
 })
+
+/* Slot op de app: zonder token kom je niet bij de tabs,
+   en wie al ingelogd is hoeft login/register niet meer te zien. */
+router.beforeEach((to) => {
+  const ingelogd = token.value !== null;
+
+  if (to.path.startsWith('/tabs') && !ingelogd) {
+    return '/login';
+  }
+
+  if ((to.path === '/login' || to.path === '/register') && ingelogd) {
+    return '/tabs/tab1';
+  }
+});
 
 export default router

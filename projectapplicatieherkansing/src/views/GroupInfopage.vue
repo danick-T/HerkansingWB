@@ -117,16 +117,16 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, inject } from 'vue';
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,
          IonButtons, IonBackButton, IonList, IonItem, IonInput, IonLabel,
-         IonButton, IonIcon, IonSearchbar, IonAlert } from '@ionic/vue';
+         IonButton, IonIcon, IonSearchbar, IonAlert, onIonViewWillEnter } from '@ionic/vue';
 import { useRoute } from 'vue-router';
 import { trashOutline, pencilOutline, personAddOutline } from 'ionicons/icons';
-import axios from 'axios';
 import { user } from '@/auth';
 
 const BASE_URL = import.meta.env.VITE_API_URL;
+const axios = inject('axios');
 const route = useRoute();
 const householdId = route.params.householdId;
 
@@ -197,7 +197,8 @@ const loadMemberships = async () => {
   }
 };
 
-onMounted(() => {
+/* Ionic lifecycle (les 4, slide 7): draait elke keer dat je deze pagina binnenkomt. */
+onIonViewWillEnter(() => {
   loadHousehold();
   loadMemberships();
 });

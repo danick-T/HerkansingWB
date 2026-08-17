@@ -65,17 +65,6 @@
         <ion-content>
           <form @submit.prevent="saveTransaction">
             <ion-list>
-              <ion-item>
-                <ion-select
-                  label="Type*"
-                  label-placement="stacked"
-                  v-model="type"
-                  interface="popover"
-                >
-                  <ion-select-option value="expense">expense</ion-select-option>
-                  <ion-select-option value="income">income</ion-select-option>
-                </ion-select>
-              </ion-item>
 
               <ion-item>
                 <ion-input
@@ -106,6 +95,25 @@
                   v-model="description"
                   placeholder="Groceries"
                 ></ion-input>
+              </ion-item>
+
+              <ion-item>
+                <ion-select
+                  label="Category"
+                  label-placement="stacked"
+                  v-model="categoryId"
+                  interface="popover"
+                  placeholder="No category"
+                >
+                  <ion-select-option :value="null">No category</ion-select-option>
+                  <ion-select-option
+                    v-for="category in categories"
+                    :key="category.id"
+                    :value="category.id"
+                  >
+                    {{ category.name }}
+                  </ion-select-option>
+                </ion-select>
               </ion-item>
 
               <ion-item v-if="receiptImage">
@@ -193,8 +201,24 @@ const loadGroups = async () => {
   }
 };
 
+/* Categorieen zijn globaal in dit datamodel: GET /api/categories */
+const categories = ref([]);
+
+const loadCategories = async () => {
+  try {
+    const response = await axios.get(`${BASE_URL}/api/categories`);
+    categories.value = response.data;
+  } catch (error) {
+    console.error(error);
+    // Geen blokkade: zonder categorieen kan je nog steeds een transactie opslaan.
+  }
+};
+
 /* Ionic lifecycle (les 4, slide 7): draait elke keer dat je deze tab binnenkomt. */
-onIonViewWillEnter(loadGroups);
+onIonViewWillEnter(() => {
+  loadGroups();
+  if (categories.value.length === 0) loadCategories();
+});
 
 const handleRefresh = async (event) => {
   await loadGroups();
@@ -205,10 +229,10 @@ const handleRefresh = async (event) => {
 const isModalOpen = ref(false);
 const selectedGroup = ref(null);
 
-const type = ref('expense');
 const amount = ref('');
 const date = ref('');
 const description = ref('');
+const categoryId = ref(null);
 const receiptImage = ref(null);
 
 const isSaving = ref(false);
@@ -223,10 +247,10 @@ const showError = (header, message) => {
 
 const openModal = (group) => {
   selectedGroup.value = group;
-  type.value = 'expense';
   amount.value = '';
   date.value = new Date().toISOString().slice(0, 10); // vandaag als standaard
   description.value = '';
+  categoryId.value = null;
   receiptImage.value = null;
   isModalOpen.value = true;
 };
@@ -259,8 +283,8 @@ const removePhoto = () => { receiptImage.value = null; };
 
 /* ---- Opslaan ---- */
 const saveTransaction = async () => {
-  if (!type.value || !amount.value || !date.value) {
-    showError('Missing fields', 'Please fill in type, amount and date.');
+  if (!amount.value || !date.value) {
+    showError('Missing fields', 'Please fill in amount and date.');
     return;
   }
 
@@ -270,11 +294,11 @@ const saveTransaction = async () => {
     await axios.post(
       `${BASE_URL}/api/households/${selectedGroup.value.id}/transactions`,
       {
-        type: type.value,
+        type: 'expense',
         amount: Number(amount.value),
         date: date.value,
         description: description.value.trim() || null,
-        categoryId: null,
+        categoryId: categoryId.value,
         receiptImage: receiptImage.value
       }
     );

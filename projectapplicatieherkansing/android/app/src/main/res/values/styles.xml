@@ -13,10 +13,18 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:background">@null</item>
+        <!-- Android 15+ (API 35) dwingt edge-to-edge af: de app tekent dan achter
+             de status- en navigatiebalk, waardoor de ion-header en de ion-tab-bar
+             eronder verdwijnen. Deze regel zet dat uit. -->
+        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
     </style>
 
 
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="android:background">@drawable/splash</item>
+        <!-- Android 15+ (API 35) dwingt edge-to-edge af: de app tekent dan achter
+             de status- en navigatiebalk, waardoor de ion-header en de ion-tab-bar
+             eronder verdwijnen. Deze regel zet dat uit. -->
+        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
     </style>
 </resources>

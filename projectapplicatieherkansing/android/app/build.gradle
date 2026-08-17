@@ -4,7 +4,7 @@ android {
     namespace = "ionic.projectapplicatieherkansing"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "ionic.projectapplicatieherkansing"
+        applicationId "be.danicktchang.huishoudapp"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

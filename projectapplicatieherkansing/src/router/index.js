@@ -21,20 +21,33 @@ const routes = [
     children: [
       {
         path: '',
-        redirect: '/tabs/profile'
+        redirect: '/tabs/home'
+      },
+      {
+        path: 'home',
+        component: () => import('@/views/HomePage.vue')
       },
       {
         path: 'profile',
         component: () => import('@/views/ProfilePage.vue')
       },
       {
-        path: 'MyGroup',
-        component: () => import('@/views/MyGroupsPage.vue')
+        path: 'addrecipt',
+        component: () => import('@/views/AddReciptPage.vue')
+      },
+      {
+        path: 'mygroup/:householdId',
+        component: () => import('@/views/MyGroupPage.vue')
       },
       {
         path: 'GroupInfo/:householdId',
         component: () => import('@/views/GroupInfoPage.vue')
-      }
+      },
+            {
+        path: 'findgroup',
+        component: () => import('@/views/FindGroupPage.vue')
+      },
+
     ]
   }
 ]
@@ -54,7 +67,7 @@ router.beforeEach((to) => {
   }
 
   if ((to.path === '/login' || to.path === '/register') && ingelogd) {
-    return '/tabs/profile';
+    return '/tabs/home';
   }
 });
 

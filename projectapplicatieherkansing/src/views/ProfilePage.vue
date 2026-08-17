@@ -39,8 +39,8 @@
         </ion-item>
       </ion-list>
 
-      <ion-Title size="large">Your Groups</ion-title>
-
+      <ion-title size="large">Your Groups</ion-title>
+      <p>Click on the arrow to see more information about your group</p>
       <ion-list :inset="true">
         <ion-item v-if="isLoadingGroups">
           <ion-label>Loading your groups...</ion-label>
@@ -73,23 +73,22 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref,inject } from 'vue';
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonButton,
-         IonList, IonItem, IonInput, IonLabel, IonIcon } from '@ionic/vue';
+         IonList, IonItem, IonInput, IonLabel, IonIcon, onIonViewWillEnter } from '@ionic/vue';
 import { useRouter } from 'vue-router';
 import { arrowUpRightBoxOutline } from 'ionicons/icons';
-import axios from 'axios';
 import { user, logout } from '@/auth';
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 const router = useRouter();
-
+const axios = inject('axios');
 const groups = ref([]);
 const isLoadingGroups = ref(true);
 const groupsError = ref('');
 
 
-onMounted(async () => {
+onIonViewWillEnter(async () => {
   try {
     const response = await axios.get(`${BASE_URL}/api/households`);
     groups.value = response.data;

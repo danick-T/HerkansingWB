@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { requireAuth, requireAdmin } from '../middleware/auth.js';
 import {
   listUsers,
+  searchUsers,
   getUser,
   updateUser,
   deleteUser
@@ -15,6 +16,11 @@ router.use(requireAuth);
 
 // De volledige gebruikerslijst is beheerdersinfo, geen publieke data.
 router.get('/', requireAdmin, listUsers);
+
+// Zoeken op e-mailadres, om iemand aan een groep toe te voegen.
+// Deze MOET boven '/:userId' staan: Express loopt de stack van boven naar
+// beneden, dus eronder zou '/search' gematcht worden als userId = "search".
+router.get('/search', searchUsers);
 
 // Je eigen profiel bekijken en aanpassen.
 // Controleer in de controller dat req.params.userId gelijk is aan

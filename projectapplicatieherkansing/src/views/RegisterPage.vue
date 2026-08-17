@@ -105,7 +105,7 @@
                 password: password.value
             });
             login(response.data.token, response.data.user);
-            router.replace('/tabs/profile');
+            router.replace('/tabs/home');
         } catch (error) {
             console.error(error);
             // De API stuurt zelf een bruikbare melding mee, bv. bij een e-mailadres

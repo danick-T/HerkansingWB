@@ -28,6 +28,35 @@ export async function listUsers(req, res, next) {
   }
 }
 
+/* GET /api/users/search?email=   (elke ingelogde gebruiker)
+   Bedoeld om iemand op te zoeken voor je hem aan een groep toevoegt.
+   Bewust GEEN requireAdmin: dan kan een gewone owner niemand vinden. */
+export async function searchUsers(req, res, next) {
+  const fragment = String(req.query.email || '').trim();
+
+  // Zonder ondergrens levert een lege zoekterm de volledige gebruikerstabel op.
+  if (fragment.length < 2) {
+    return res.json([]);
+  }
+
+  try {
+    // mapUser hergebruiken we hier bewust niet: die geeft ook role en
+    // createdAt terug, en dat hoeft een wildvreemde niet te weten.
+    const { rows } = await pool.query(
+      `SELECT id, name, email
+         FROM users
+        WHERE email ILIKE $1
+        ORDER BY email
+        LIMIT 10`,
+      [`%${fragment}%`]
+    );
+
+    res.json(rows.map((row) => ({ id: row.id, name: row.name, email: row.email })));
+  } catch (err) {
+    next(err);
+  }
+}
+
 /* GET /api/users/:userId */
 export async function getUser(req, res, next) {
   const id = Number(req.params.userId);

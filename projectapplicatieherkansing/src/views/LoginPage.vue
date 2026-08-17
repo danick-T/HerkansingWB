@@ -93,7 +93,7 @@
                 password: password.value
             });
             login(response.data.token, response.data.user);
-            router.replace('/tabs/profile');
+            router.replace('/tabs/home');
         } catch (error) {
             console.error(error);
             showError('Login failed', 'Invalid email or password.');

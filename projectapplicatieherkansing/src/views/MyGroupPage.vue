@@ -71,8 +71,7 @@
           </ion-button>
 
           <ion-text v-else slot="end" :color="member.balance >= 0 ? 'success' : 'danger'">
-            {{ member.balance >= 0 ? 'gets back' : 'owes' }}
-            {{ formatAmount(Math.abs(member.balance)) }}
+            {{ formatAmount(member.balance) }}
           </ion-text>
         </ion-item>
       </ion-list>
@@ -132,7 +131,9 @@
         <ion-button expand="block" @click="goToAddReceipt">Add receipt</ion-button>
       </div>
 
-      <!-- Top up: je eigen schuld (deels) aanzuiveren.
+    </ion-content>
+
+    <!-- Top up: je eigen schuld (deels) aanzuiveren.
            In een echte app zou hier een betaling met kaart gebeuren; die is
            voor dit project bewust niet ingebouwd. -->
       <ion-modal :is-open="isTopUpOpen" @didDismiss="closeTopUp">
@@ -186,22 +187,7 @@
         </ion-content>
       </ion-modal>
 
-      <ion-alert
-        :is-open="topUpError !== ''"
-        header="Could not top up"
-        :message="topUpError"
-        :buttons="['OK']"
-        @didDismiss="topUpError = ''"
-      ></ion-alert>
-
-      <ion-toast
-        :is-open="showTopUpSuccess"
-        message="Payment added."
-        :duration="2000"
-        @didDismiss="showTopUpSuccess = false"
-      ></ion-toast>
-
-      <!-- De bon zit niet in de lijst (alleen hasReceipt), dus die halen we
+    <!-- De bon zit niet in de lijst (alleen hasReceipt), dus die halen we
            per transactie op via GET /transactions/:id -->
       <ion-modal :is-open="isReceiptOpen" @didDismiss="closeReceipt">
         <ion-header>
@@ -218,32 +204,57 @@
           <ion-label v-else color="danger">Could not load the receipt.</ion-label>
         </ion-content>
       </ion-modal>
-    </ion-content>
+
+      <ion-alert
+        :is-open="topUpError !== ''"
+        header="Could not top up"
+        :message="topUpError"
+        :buttons="['OK']"
+        @didDismiss="topUpError = ''"
+      ></ion-alert>
+
+      <ion-toast
+        :is-open="showTopUpSuccess"
+        message="Payment added."
+        :duration="2000"
+        @didDismiss="showTopUpSuccess = false"
+      ></ion-toast>
   </ion-page>
 </template>
 
 <script setup>
-import { ref, computed, inject } from 'vue';
+import { ref, computed, inject, watch } from 'vue';
 import {
   onIonViewWillEnter,
   IonPage, IonHeader, IonToolbar, IonTitle, IonContent,
   IonButtons, IonBackButton, IonButton, IonModal,
   IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent,
   IonGrid, IonRow, IonCol, IonText, IonNote, IonIcon,
-  IonList, IonListHeader, IonItem, IonLabel, IonImg, IonBadge,
+  IonList, IonListHeader, IonItem, IonLabel, IonImg, IonBadge, IonInput,
   IonRefresher, IonRefresherContent, IonAlert, IonToast
 } from '@ionic/vue';
 import { receiptOutline } from 'ionicons/icons';
 import { useRoute, useRouter } from 'vue-router';
 import { user } from '@/auth';
+import { isPaymentCategory } from '@/categories';
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 const axios = inject('axios');
 const route = useRoute();
 const router = useRouter();
 
-/* De groep uit het pad: /tabs/mygroup/:householdId */
-const householdId = route.params.householdId;
+/* De groep uit het pad: /tabs/mygroup/:householdId
+   Als computed, zodat een andere groep ook een andere id oplevert wanneer
+   Ionic deze pagina hergebruikt. */
+const householdId = computed(() => route.params.householdId);
+
+/* Een top-up krijgt de categorie die bij een betaling hoort, als die bestaat. */
+const categories = ref([]);
+
+const paymentCategoryId = computed(() => {
+  const gevonden = categories.value.find(isPaymentCategory);
+  return gevonden ? gevonden.id : null;
+});
 
 const group = ref(null);
 const transactions = ref([]);
@@ -320,16 +331,19 @@ const loadData = async () => {
   errorMessage.value = '';
 
   try {
-    const [householdResponse, transactionsResponse, membershipsResponse] = await Promise.all([
-      axios.get(`${BASE_URL}/api/households/${householdId}`),
-      axios.get(`${BASE_URL}/api/households/${householdId}/transactions`, {
+    const [householdResponse, transactionsResponse, membershipsResponse, categoriesResponse] =
+      await Promise.all([
+      axios.get(`${BASE_URL}/api/households/${householdId.value}`),
+      axios.get(`${BASE_URL}/api/households/${householdId.value}/transactions`, {
         params: { limit: 100 }
       }),
-      axios.get(`${BASE_URL}/api/households/${householdId}/memberships`)
+      axios.get(`${BASE_URL}/api/households/${householdId.value}/memberships`),
+      axios.get(`${BASE_URL}/api/categories`)
     ]);
 
     group.value = householdResponse.data;
     members.value = membershipsResponse.data;
+    categories.value = categoriesResponse.data;
 
     // De API stuurt { data, page, limit, total } terug, geen platte array.
     transactions.value = transactionsResponse.data.data;
@@ -345,6 +359,17 @@ const loadData = async () => {
 /* Ionic lifecycle (les 4, slide 7): draait elke keer dat je deze pagina binnenkomt,
    dus ook als je terugkomt na het toevoegen van een bonnetje. */
 onIonViewWillEnter(loadData);
+
+/* Vangnet: Ionic houdt paginacomponenten in leven en hergebruikt ze binnen de
+   tabs. Kom je vanaf de 'Add receipt'-tab op een groep die al in het geheugen
+   zat, dan kan onIonViewWillEnter overgeslagen worden en zie je de oude
+   bedragen. Deze watch herlaadt zodra de route naar deze pagina wijst. */
+watch(
+  () => route.fullPath,
+  (pad) => {
+    if (pad.startsWith('/tabs/mygroup/')) loadData();
+  }
+);
 
 const handleRefresh = async (event) => {
   await loadData();
@@ -363,7 +388,7 @@ const openReceipt = async (tx) => {
 
   try {
     const response = await axios.get(
-      `${BASE_URL}/api/households/${householdId}/transactions/${tx.id}`
+      `${BASE_URL}/api/households/${householdId.value}/transactions/${tx.id}`
     );
     receiptImage.value = response.data.receiptImage;
   } catch (error) {
@@ -416,12 +441,12 @@ const saveTopUp = async () => {
   try {
     // Een top-up is een income-transactie op naam van de ingelogde gebruiker.
     // De API haalt user_id uit het token, dus die sturen we bewust niet mee.
-    await axios.post(`${BASE_URL}/api/households/${householdId}/transactions`, {
+    await axios.post(`${BASE_URL}/api/households/${householdId.value}/transactions`, {
       type: 'income',
       amount: bedrag,
       date: new Date().toISOString().slice(0, 10),
       description: 'Top up',
-      categoryId: null,
+      categoryId: paymentCategoryId.value,
       receiptImage: null
     });
 

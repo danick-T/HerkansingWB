@@ -72,10 +72,6 @@
 
       <ion-title size="large">Members</ion-title>
 
-      <ion-item v-if="actionMessage" lines="none">
-        <ion-label :color="actionOk ? 'success' : 'danger'">{{ actionMessage }}</ion-label>
-      </ion-item>
-
       <ion-list :inset="true">
         <ion-item v-if="isLoadingMembers">
           <ion-label>Loading group members...</ion-label>
@@ -112,6 +108,15 @@
         @didDismiss="isAlertOpen = false"
       ></ion-alert>
 
+      <!-- Melding na een actie: verdwijnt vanzelf na 3 seconden. -->
+      <ion-toast
+        :is-open="actionMessage !== ''"
+        :message="actionMessage"
+        :color="actionOk ? 'success' : 'danger'"
+        :duration="3000"
+        @didDismiss="actionMessage = ''"
+      ></ion-toast>
+
     </ion-content>
   </ion-page>
 </template>
@@ -120,7 +125,7 @@
 import { ref, computed, inject } from 'vue';
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,
          IonButtons, IonBackButton, IonList, IonItem, IonInput, IonLabel,
-         IonButton, IonIcon, IonSearchbar, IonAlert, onIonViewWillEnter } from '@ionic/vue';
+         IonButton, IonIcon, IonSearchbar, IonAlert, IonToast, onIonViewWillEnter } from '@ionic/vue';
 import { useRoute } from 'vue-router';
 import { trashOutline, pencilOutline, personAddOutline } from 'ionicons/icons';
 import { user } from '@/auth';
@@ -199,6 +204,7 @@ const loadMemberships = async () => {
 
 /* Ionic lifecycle (les 4, slide 7): draait elke keer dat je deze pagina binnenkomt. */
 onIonViewWillEnter(() => {
+  actionMessage.value = '';
   loadHousehold();
   loadMemberships();
 });

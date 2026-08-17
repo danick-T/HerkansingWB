@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">projectapplicatieherkansing</string>
-    <string name="title_activity_main">projectapplicatieherkansing</string>
-    <string name="package_name">ionic.projectapplicatieherkansing</string>
-    <string name="custom_url_scheme">ionic.projectapplicatieherkansing</string>
+    <string name="app_name">Huishoudapp</string>
+    <string name="title_activity_main">Huishoudapp</string>
+    <string name="package_name">be.danicktchang.huishoudapp</string>
+    <string name="custom_url_scheme">be.danicktchang.huishoudapp</string>
 </resources>

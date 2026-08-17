@@ -27,6 +27,13 @@ function login(newToken, newUser) {
   axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`
 }
 
+/* Profielgegevens bijwerken zonder opnieuw in te loggen.
+   De token blijft ongewijzigd: die verandert niet als je naam wijzigt. */
+function setUser(newUser) {
+  user.value = newUser
+  localStorage.setItem('user', JSON.stringify(newUser))
+}
+
 function logout() {
   token.value = null
   user.value = null
@@ -37,4 +44,4 @@ function logout() {
   delete axios.defaults.headers.common['Authorization']
 }
 
-export { token, user, login, logout }
+export { token, user, login, logout, setUser }

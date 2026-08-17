@@ -107,7 +107,7 @@
                 >
                   <ion-select-option :value="null">No category</ion-select-option>
                   <ion-select-option
-                    v-for="category in categories"
+                    v-for="category in expenseCategories"
                     :key="category.id"
                     :value="category.id"
                   >
@@ -165,7 +165,7 @@
 </template>
 
 <script setup>
-import { ref, inject } from 'vue';
+import { ref, computed, inject } from 'vue';
 import {
   onIonViewWillEnter,
   IonPage, IonHeader, IonToolbar, IonTitle, IonContent,
@@ -176,6 +176,7 @@ import {
 import { cameraOutline, imagesOutline } from 'ionicons/icons';
 import { useRouter } from 'vue-router';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { isPaymentCategory } from '@/categories';
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 const axios = inject('axios');
@@ -203,6 +204,12 @@ const loadGroups = async () => {
 
 /* Categorieen zijn globaal in dit datamodel: GET /api/categories */
 const categories = ref([]);
+
+/* Een bon is altijd een uitgave, dus categorieen die bij een betaling horen
+   (zoals 'inkomsten') horen hier niet in de keuzelijst. */
+const expenseCategories = computed(() =>
+  categories.value.filter((category) => !isPaymentCategory(category))
+);
 
 const loadCategories = async () => {
   try {

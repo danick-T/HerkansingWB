@@ -12,6 +12,10 @@
         </ion-toolbar>
       </ion-header>
 
+      <div class="ion-text-center ion-padding">
+        <ion-img :src="logo" alt="App logo" class="app-logo"></ion-img>
+      </div>
+
       <form @submit.prevent="loginUser">
         <ion-item>
             <ion-input label="Email*" type="email" v-model="email" required placeholder="example@example.com"></ion-input>
@@ -42,8 +46,9 @@
 <script setup>
     import { ref } from 'vue';
     import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent,
-             IonItem, IonLabel, IonInput, IonButton, IonAlert } from '@ionic/vue';
+             IonItem, IonLabel, IonInput, IonButton, IonAlert, IonImg } from '@ionic/vue';
     import { useRouter } from 'vue-router';
+    import logo from '@/assets/logo.png';
     import axios from 'axios';
     import { login } from '@/auth';
 
@@ -103,3 +108,10 @@
     }
 </script>
 
+<style scoped>
+/* Een afbeelding heeft een breedte nodig, dat kan geen ion-component voor je doen. */
+.app-logo {
+  width: 120px;
+  margin: 0 auto;
+}
+</style>

@@ -156,7 +156,7 @@ const joinGroup = async () => {
 
   try {
     const response = await axios.post(`${BASE_URL}/api/households/join`, {
-      code: groupCode.value.trim()
+      inviteCode: groupCode.value.trim()
     });
 
     groupCode.value = '';
@@ -164,7 +164,7 @@ const joinGroup = async () => {
     await loadGroups();
 
     // Meteen doorsturen naar de groep waar je net lid van werd.
-    const joinedId = response.data?.id ?? response.data?.householdId;
+    const joinedId = response.data?.id;
     if (joinedId) {
       router.push(`/tabs/mygroup/${joinedId}`);
     }
